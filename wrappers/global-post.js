@@ -1,0 +1,2 @@
+export.SyncPromise = SyncPromise;
+}(this));
