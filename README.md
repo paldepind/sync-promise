@@ -8,7 +8,7 @@ Why
 ===
 
 Promises makes handling asynchronous operations easier. IndexedDB exposes a lot of
-asynchronous operation. Sounds like a great match? Well, no, because the Promises/A+
+asynchronous operations. Sounds like a great match? Well, no, because the Promises/A+
 specification is completely incompatible with the way IndexedDB transactions work.
 
 SyncPromise was created because it's author wanted to use promises inside
@@ -23,9 +23,9 @@ Features
 * Weights less than 1KB when minified (not gziped). That's probably the
   smallest promise implementation you're going to find.
 * Perfect for including directly inside another library
-* Familiar API very similair to the native ECMAScript promise API.
+* Familiar API that is very similair to the native ECMAScript promise API.
 * Distributed both as a CommonJS pacakge, AMD module, global export and as a
-  version suitable for direct inclusion in other source code
+  version suitable for including directly in other source code.
 
 Installation
 ============
@@ -84,10 +84,10 @@ Differences from ECMAScript promises
 
 * Synchronized resolution and rejection, of course.
 * No `race` function. How that function ended up in the specification is beyond
-  me. Especially considering all the other way more useful promise function.
-* `.then` does not take a rejected handler. Only a fulfilled handler. Use `.catch`
+  me. Especially considering the amount of way more useful promise utility function.
+* `.then` does not take a rejection handler. Only a fulfilled handler. Use `.catch`
   instead. This is a departure from Promises/A+. But we're not compatible anyway
-  so we get away without supporting [this anti-pattern](https://github.com/petkaantonov/bluebird/wiki/Promise-anti-patterns#the-thensuccess-fail-anti-pattern).
+  so we get away with not supporting [this anti-pattern](https://github.com/petkaantonov/bluebird/wiki/Promise-anti-patterns#the-thensuccess-fail-anti-pattern).
 
 API
 ===
