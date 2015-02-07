@@ -1,0 +1,27 @@
+{
+  "name": "sync-promise",
+  "main": "index.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/paldepind/sync-promise",
+  "authors": [
+    "Simon Friis Vindum"
+  ],
+  "description": "Ultra compact synchronized promise implementation.",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "indexeddb",
+    "promises"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

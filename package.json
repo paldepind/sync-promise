@@ -1,0 +1,26 @@
+{
+  "name": "sync-promise",
+  "version": "1.0.0",
+  "description": "Ultra compact synchronized promise implementation.",
+  "main": "dist/sync-promise-commonjs.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paldepind/sync-promise.git"
+  },
+  "keywords": [
+    "indexeddb",
+    "promises"
+  ],
+  "author": "Simon Friis Vindum",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paldepind/sync-promise/issues"
+  },
+  "homepage": "https://github.com/paldepind/sync-promise"
+}
