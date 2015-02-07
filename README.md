@@ -27,6 +27,18 @@ Features
 * Distributed both as a CommonJS pacakge, AMD module, global export and as a
   version suitable for including directly in other source code.
 
+Beware
+======
+
+It is for good reason that the Promises/A+ specification requires asynchronous
+resolution! Without care taken one can end up creating promises that are
+sometimes synchronous and sometimes asynchronous. That is a _very_ bad idea
+that leads to unpredictable non-determined behaviour ([see this post for a
+detailed explanation](http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/)).
+Take precautions. If, for instance, you always perform an IndexedDB request
+inside a promise one can be sure about the order execution and rely on
+run-to-completion semantics.
+
 Installation
 ============
 
