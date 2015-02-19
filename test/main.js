@@ -78,13 +78,13 @@ describe('SyncPromise', function() {
   describe('Rejection', function() {
     it('can reject a promise', function(done) {
       new SyncPromise(function(res, rej) {
-        rej(1);
+        soon(function() { rej(1); });
       }).catch(function(n) {
         assert.equal(n, 1);
         done();
       });
     });
-    it('promise rejects if error is thrown', function() {
+    it('promise rejects if error is thrown', function(done) {
       var p = new SyncPromise(function(res, rej) {
         throw new Error('Does not compute');
       });
@@ -118,7 +118,7 @@ describe('SyncPromise', function() {
         done();
       });
     });
-    it('rejections can be cought', function(done) {
+    it('exceptions can be cought', function(done) {
       new SyncPromise(function(res, rej) {
         res(1);
       }).then(function(n) {
@@ -131,6 +131,18 @@ describe('SyncPromise', function() {
         assert.equal(n, 0);
         done();
       });
+    });
+    it('throws if exceptions aren\'t cought', function(done) {
+      try {
+        new SyncPromise(function(res, rej) {
+          res(1);
+        }).then(function(n) {
+          throw 'err';
+        });
+      } catch (err) {
+        assert.equal(err, 'err');
+        done();
+      }
     });
     it('if catch throw then promise is rejected', function(done) {
       new SyncPromise(function(res, rej) {
