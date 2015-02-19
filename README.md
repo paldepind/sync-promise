@@ -1,33 +1,36 @@
 # SyncPromise
 
-A very small promise implementation with an API close to ECMAScript promises
-but without synchronized resolution. This means SyncPromise is incompliant with
-the Promises/A+ spec. Specifically part [2.2.4](https://promisesaplus.com/#point-34).
+A fast, small, _safe_ promise implementation with synchronous promise resolution
+and an API which resembles ECMAScript promises.
+
+SyncPromise is incompliant with the Promises/A+ spec. Specifically part
+[2.2.4](https://promisesaplus.com/#point-34).
 
 Why
 ===
 
 Promises makes handling asynchronous operations easier. IndexedDB exposes a lot of
-asynchronous operations. Sounds like a great match? Well, no, because the Promises/A+
-specification is completely incompatible with the way IndexedDB transactions work.
+asynchronous operations. That sounds like a great match? Well, [unfortunately things
+are not so simple](http://stackoverflow.com/questions/28388129/inconsistent-interplay-between-indexeddb-transactions-and-promises/)
+It is not possible to use Promises/A+ promises inside IndexeDB transactions in
+a cross browser way.
 
-SyncPromise was created because it's author wanted to use promises inside
-IndexedDB transaction for the library
-[SyncedDB](https://github.com/paldepind/synceddb) – both internally and in the
-user facing API. SyncPromise was extracted from the SyncedDB codebase in the
-hope that it whould be of use to others who work directly with IndexedDB.
+SyncPromise was created because it's author wanted to use promises in
+IndexedDB transaction for the library [SyncedDB](https://github.com/paldepind/synceddb)
+– both internally and in the user facing API. It was released in the hope that
+it whould be of use to others who work directly with IndexedDB.
 
 Features
 ========
 
-* Weights less than 1KB when minified (not gziped). That's probably the
-  smallest promise implementation you're going to find.
-* Perfect for including directly inside another library
-* Familiar API that is very similair to the native ECMAScript promise API.
+* Weights less than 1KB when minified (not gziped).
+* Perfect for including directly inside another library.
+* Familiar API that is very similair to the native ECMAScript promises API.
+* Provides a safety mechanism to prevent [releasing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony)
 * Distributed both as a CommonJS pacakge, AMD module, global export and as a
   version suitable for including directly in other source code.
 
-Beware
+Safety
 ======
 
 It is for good reason that the Promises/A+ specification requires asynchronous
@@ -35,9 +38,43 @@ resolution! Without care taken one can end up creating promises that are
 sometimes synchronous and sometimes asynchronous. That is a _very_ bad idea
 that leads to unpredictable non-determined behaviour ([see this post for a
 detailed explanation](http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/)).
-Take precautions. If, for instance, you always perform an IndexedDB request
-inside a promise one can be sure about the order execution and rely on
-run-to-completion semantics.
+
+Fortunately SyncPromise imposes a two restrictions on usage. The first prevents
+you from releasing Zalgo. And the second makes sure that no errors gets
+swallowed. Together these restrictions ensures that a promise chain will
+_always_ be run asynchronously or an explicit error will be thrown.
+
+### Promises that are synchronously resolved can't be chained
+
+```javascript
+new SyncPromise(function(resolve, reject) {
+  resolve('foo'); // <- Sync resolve
+}).then(function() {
+  // Bad! This is disallowed, error will be thrown
+});
+
+new SyncPromise(function(resolve, reject) {
+  setTimeout(resolve, 10); // <- Asynchronous resolve
+}).then(function() {
+  return 1; // Fine!
+}).then(function(n) {
+  n === 1; // true
+});
+```
+
+Throwing an expection in the promise body counts as a synchronous resolve.
+The error will not be chought.
+
+### If a promise rejects at least one `onRejected` callback must have been attached
+
+```javascript
+var p = new SyncPromise(function(resolve, reject) {
+  setTimeout(reject, 10); // Error is thrown – no rejection handlers attached yet
+})
+setTimeout(function() {
+  p.catch(function() { });
+}), 20;
+```
 
 Installation
 ============
@@ -83,8 +120,7 @@ function getRecord(IDBStore, key) {
 var tx = db.transaction('books', 'readonly');
 var bookStore = tx.objectStore('books');
 
-getRecord(bookStore, 'Bedrock Nights')
-.then(function(book) {
+getRecord(bookStore, 'Bedrock Nights').then(function(book) {
   // We got the book, and the transaction is still open so we
   // can make another request. Had `getRecord` used native promises
   // the transaction whould have been closed by now.
