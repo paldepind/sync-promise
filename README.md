@@ -136,6 +136,8 @@ Differences from ECMAScript promises
 * `.then` does not take a rejection handler. Only a fulfilled handler. Use `.catch`
   instead. This is a departure from Promises/A+. But we're not compatible anyway
   so we get away with not supporting [this anti-pattern](https://github.com/petkaantonov/bluebird/wiki/Promise-anti-patterns#the-thensuccess-fail-anti-pattern).
+* `Promise.resolve` and `Promise.reject` are not implemented – they don't make sense
+  giving the above restrictions
 
 API
 ===
@@ -193,32 +195,6 @@ getSomething.then(function(v) {
 }).then(function(v) {
   doSomethingElse(v);
 });
-
-```
-
-### SyncPromise.resolve(value)
-
-Return a promise that is resolved with the value.
-
-__Example:__
-
-```javascript
-SyncPromise.resolve(12).then(function(n) {
-  assert(n === 12);
-});
-```
-
-### SyncPromise.reject(value)
-
-Return a promise that is rejeced with the value.
-
-__Example:__
-
-```javascript
-SyncPromise.reject('err').catch(function(n) {
-  assert(n === 12);
-});
-```
 
 ### SyncPromise.all(array)
 

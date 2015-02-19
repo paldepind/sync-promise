@@ -1,6 +1,6 @@
 {
   "name": "sync-promise",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ultra compact synchronized promise implementation.",
   "main": "dist/sync-promise-commonjs.js",
   "directories": {
