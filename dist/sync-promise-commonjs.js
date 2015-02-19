@@ -12,17 +12,14 @@ function SyncPromise(fn) {
   self.v = 0; // Value, this will be set to either a resolved value or rejected reason
   self.s = PENDING; // State of the promise
   self.c = [[],[]]; // Callbacks c[0] is fulfillment and c[1] is rejection callbacks
-  self.h = false; // Handled
+  self.a = false; // Has the promise been resolved synchronously
+  var syncResolved = true;
   function transist(val, state) {
+    self.a = syncResolved;
     self.v = val;
     self.s = state;
     if (state === REJECTED && !self.c[state].length) {
-      setTimeout(function() {
-        if (!self.h) {
-          console.log('Potentially uncought rejection');
-          console.log(self.v);
-        }
-      });
+      throw val;
     }
     self.c[state].forEach(function(fn) { fn(val); });
     self.c = null; // Release memory.
@@ -45,25 +42,17 @@ function SyncPromise(fn) {
       transist(reason, REJECTED);
     }
   }
-  try {
-    fn(resolve, reject);
-  } catch (reason) {
-    reject(reason);
-  }
+  fn(resolve, reject);
+  syncResolved = false;
 }
-
-SyncPromise.resolve = function(v) {
-  return isPromise(v) ? v : new SyncPromise(function(res) { res(v); });
-};
-
-SyncPromise.reject = function(v) {
-  return isPromise(v) ? v : new SyncPromise(function(_, rej) { rej(v); });
-};
 
 var prot = SyncPromise.prototype;
 
 prot.then = function(cb) {
   var self = this;
+  if (self.a) { // Promise has been resolved synchronously
+    throw new Error('Can not call then on synchonously resolved promise');
+  }
   return new SyncPromise(function(resolve, reject) {
     function settle() {
       try {
@@ -75,7 +64,6 @@ prot.then = function(cb) {
     if (self.s === FULFILLED) {
       settle();
     } else if (self.s === REJECTED) {
-      self.h = true;
       reject(self.v);
     } else {
       self.c[FULFILLED].push(settle);
@@ -86,6 +74,9 @@ prot.then = function(cb) {
 
 prot.catch = function(cb) {
   var self = this;
+  if (self.a) { // Promise has been resolved synchronously
+    throw new Error('Can not call catch on synchonously resolved promise');
+  }
   return new SyncPromise(function(resolve, reject) {
     function settle() {
       try {
@@ -95,7 +86,6 @@ prot.catch = function(cb) {
       }
     }
     if (self.s === REJECTED) {
-      self.h = true;
       settle();
     } else if (self.s === FULFILLED) {
       resolve(self.v);

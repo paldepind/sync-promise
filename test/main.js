@@ -13,7 +13,7 @@ describe('SyncPromise', function() {
   describe('Resolution', function() {
     it('calls then callback when resolved', function(done) {
       var p = new SyncPromise(function(res, rej) {
-        res(10);
+        soon(function() { res(10); });
       });
       p.then(function(v) {
         assert.equal(v, 10);
@@ -28,7 +28,7 @@ describe('SyncPromise', function() {
     });
     it('then can be chained with plain values', function(done) {
       new SyncPromise(function(res) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         return n+1;
       }).then(function(n) {
@@ -40,14 +40,14 @@ describe('SyncPromise', function() {
     });
     it('then can be chained with promises', function(done) {
       new SyncPromise(function(res) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         return new SyncPromise(function(res) {
-          res(n+1);
+          soon(function() { res(n+1); });
         });
       }).then(function(n) {
         return new SyncPromise(function(res) {
-          res(n+1);
+          soon(function() { res(n + 1); });
         });
       }).then(function(n) {
         assert.equal(n, 3);
@@ -64,15 +64,14 @@ describe('SyncPromise', function() {
         done();
       });
     });
-    it('can only be rejected once', function(done) {
-      var p = new SyncPromise(function(res, rej) {
-        soon(function() {
-          rej(1); rej(2);
-        });
-      });
-      p.catch(function() {
+    it('can not call then on synchronously resolved promise', function(done) {
+      try {
+        new SyncPromise(function(res, rej) {
+          res(1);
+        }).then(function() { });
+      } catch (err) {
         done();
-      });
+      }
     });
   });
   describe('Rejection', function() {
@@ -84,17 +83,9 @@ describe('SyncPromise', function() {
         done();
       });
     });
-    it('promise rejects if error is thrown', function(done) {
-      var p = new SyncPromise(function(res, rej) {
-        throw new Error('Does not compute');
-      });
-      p.catch(function(e) {
-        done();
-      });
-    });
     it('forwards rejections', function(done) {
       new SyncPromise(function(res, rej) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         throw 'err';
       }).then(function(n) {
@@ -106,7 +97,7 @@ describe('SyncPromise', function() {
     });
     it('promise returned by catch resolves', function(done) {
       new SyncPromise(function(res, rej) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         return new SyncPromise(function(res) {
           soon(function() { res(n+1); });
@@ -118,9 +109,19 @@ describe('SyncPromise', function() {
         done();
       });
     });
+    it('can only be rejected once', function(done) {
+      var p = new SyncPromise(function(res, rej) {
+        soon(function() {
+          rej(1); rej(2);
+        });
+      });
+      p.catch(function() {
+        done();
+      });
+    });
     it('exceptions can be cought', function(done) {
       new SyncPromise(function(res, rej) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         throw 'err';
       }).then(function(n) {
@@ -135,18 +136,16 @@ describe('SyncPromise', function() {
     it('throws if exceptions aren\'t cought', function(done) {
       try {
         new SyncPromise(function(res, rej) {
-          res(1);
-        }).then(function(n) {
-          throw 'err';
+          throw new Error('err');
         });
       } catch (err) {
-        assert.equal(err, 'err');
+        assert.equal(err.message, 'err');
         done();
       }
     });
     it('if catch throw then promise is rejected', function(done) {
       new SyncPromise(function(res, rej) {
-        rej(1);
+        soon(function() { rej(1); });
       }).catch(function(e) {
         throw 0;
       }).catch(function(n) {
@@ -156,10 +155,10 @@ describe('SyncPromise', function() {
     });
     it('promise returned from then rejects if cb returns rejected promise', function(done) {
       new SyncPromise(function(res, rej) {
-        res(1);
+        soon(function() { res(1); });
       }).then(function(n) {
         return new SyncPromise(function(res, rej) {
-          rej(n+1);
+          soon(function() { rej(n+1); });
         });
       }).catch(function(e) {
         assert.equal(e, 2);
@@ -171,13 +170,13 @@ describe('SyncPromise', function() {
     it('resolves with values in array', function(done) {
       var ps = [
         new SyncPromise(function(res) {
-          soon(res(1));
+          soon(function() { res(1); });
         }),
         new SyncPromise(function(res) {
-          soon(res(2));
+          soon(function() { res(2); });
         }),
         new SyncPromise(function(res) {
-          soon(res(3));
+          soon(function() { res(3); });
         }),
       ];
       SyncPromise.all(ps).then(function(ns) {
@@ -188,11 +187,11 @@ describe('SyncPromise', function() {
     it('handles plain values in array', function(done) {
       var ps = [
         new SyncPromise(function(res) {
-          soon(res(1));
+          soon(function() { res(1); });
         }),
         2,
         new SyncPromise(function(res) {
-          soon(res(3));
+          soon(function() { res(3); });
         }),
       ];
       SyncPromise.all(ps).then(function(ns) {
@@ -203,13 +202,13 @@ describe('SyncPromise', function() {
     it('rejects if a promise rejects', function(done) {
       var ps = [
         new SyncPromise(function(res) {
-          soon(res(1));
+          soon(function() { res(1); });
         }),
         new SyncPromise(function(res, rej) {
-          soon(rej(0));
+          soon(function() { rej(0); });
         }),
         new SyncPromise(function(res) {
-          soon(res(3));
+          soon(function() { res(3); });
         }),
       ];
       SyncPromise.all(ps).then(function(ns) {
@@ -219,6 +218,7 @@ describe('SyncPromise', function() {
       });
     });
   });
+  /*
   it('can create resolved promise from value', function(done) {
     SyncPromise.resolve(1).then(function(n) {
       return n+1;
@@ -235,4 +235,5 @@ describe('SyncPromise', function() {
       done();
     });
   });
+  */
 });
