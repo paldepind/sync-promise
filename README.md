@@ -24,7 +24,6 @@ Features
 ========
 
 * Weights less than 1KB when minified (not gziped).
-* Perfect for including directly inside another library.
 * Familiar API that is very similair to the native ECMAScript promises API.
 * Provides a safety mechanism to prevent [releasing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony)
 * Distributed both as a CommonJS pacakge, AMD module, global export and as a
@@ -36,15 +35,21 @@ Safety
 It is for good reason that the Promises/A+ specification requires asynchronous
 resolution! Without care taken one can end up creating promises that are
 sometimes synchronous and sometimes asynchronous. That is a _very_ bad idea
-that leads to unpredictable non-determined behaviour ([see this post for a
+that leads to unpredictable non-deterministic behaviour ([see this post for a
 detailed explanation](http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/)).
 
+### Restrictions
+
 Fortunately SyncPromise imposes a two restrictions on usage. The first prevents
-you from releasing Zalgo. And the second makes sure that no errors gets
-swallowed. Together these restrictions ensures that a promise chain will
-_always_ be run asynchronously or an explicit error will be thrown.
+ensures that promises are never resolved immediately. And the second makes sure
+that no errors gets swallowed. Together these restrictions ensures that a
+promise chain will _always_ be run asynchronously or an explicit error will be
+thrown.
 
 ### Promises that are synchronously resolved can't be chained
+
+Throwing an expection in the promise body counts as a synchronous resolve.
+The error will not be chought.
 
 ```javascript
 new SyncPromise(function(resolve, reject) {
@@ -62,10 +67,10 @@ new SyncPromise(function(resolve, reject) {
 });
 ```
 
-Throwing an expection in the promise body counts as a synchronous resolve.
-The error will not be chought.
-
 ### If a promise rejects at least one `onRejected` callback must have been attached
+
+This ensures that all rejected promises are handled. Other promise libraries (Bluebird
+for instance) uses async mechanisms to ensure this.
 
 ```javascript
 var p = new SyncPromise(function(resolve, reject) {
