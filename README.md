@@ -200,6 +200,7 @@ getSomething.then(function(v) {
 }).then(function(v) {
   doSomethingElse(v);
 });
+```
 
 ### SyncPromise.all(array)
 
