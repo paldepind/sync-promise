@@ -9,22 +9,22 @@ SyncPromise is incompliant with the Promises/A+ spec. Specifically part
 Why
 ===
 
-Promises makes handling asynchronous operations easier. IndexedDB exposes a lot of
+Promises make handling asynchronous operations easier. IndexedDB exposes a lot of
 asynchronous operations. That sounds like a great match? Well, [unfortunately things
 are not so simple](http://stackoverflow.com/questions/28388129/inconsistent-interplay-between-indexeddb-transactions-and-promises/)
-It is not possible to use Promises/A+ promises inside IndexeDB transactions in
+It is not possible to use Promises/A+ promises inside IndexedDB transactions in
 a cross browser way.
 
 SyncPromise was created because it's author wanted to use promises in
 IndexedDB transaction for the library [SyncedDB](https://github.com/paldepind/synceddb)
 – both internally and in the user facing API. It was released in the hope that
-it whould be of use to others who work directly with IndexedDB.
+it would be of use to others who work directly with IndexedDB.
 
 Features
 ========
 
-* Weights less than 1KB when minified (not gziped).
-* Familiar API that is very similair to the native ECMAScript promises API.
+* Weighs less than 1KB when minified (not gzipped).
+* Familiar API that is very similar to the native ECMAScript promises API.
 * Provides a safety mechanism to prevent [releasing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony)
 * Distributed both as a CommonJS pacakge, AMD module, global export and as a
   version suitable for including directly in other source code.
@@ -42,14 +42,14 @@ detailed explanation](http://blog.ometer.com/2011/07/24/callbacks-synchronous-an
 
 Fortunately SyncPromise imposes a two restrictions on usage. The first prevents
 ensures that promises are never resolved immediately. And the second makes sure
-that no errors gets swallowed. Together these restrictions ensures that a
+that no errors gets swallowed. Together these restrictions ensure that a
 promise chain will _always_ be run asynchronously or an explicit error will be
 thrown.
 
 ### Promises that are synchronously resolved can't be chained
 
-Throwing an expection in the promise body counts as a synchronous resolve.
-The error will not be chought.
+Throwing an exception in the promise body counts as a synchronous resolution.
+The error will not be caught.
 
 ```javascript
 new SyncPromise(function(resolve, reject) {
@@ -105,7 +105,7 @@ Example
 
 ```javascript
 // This is a wrapper around IDBStore#get.
-// Had it been written using native promises it whould have closed the
+// Had it been written using native promises it would have closed the
 // transaction when calling `resolve` or `reject`
 function getRecord(IDBStore, key) {
   return new SyncPromise(function(resolve, reject) {
@@ -142,7 +142,7 @@ Differences from ECMAScript promises
   instead. This is a departure from Promises/A+. But we're not compatible anyway
   so we get away with not supporting [this anti-pattern](https://github.com/petkaantonov/bluebird/wiki/Promise-anti-patterns#the-thensuccess-fail-anti-pattern).
 * `Promise.resolve` and `Promise.reject` are not implemented – they don't make sense
-  giving the above restrictions
+  given the above restrictions
 
 API
 ===
@@ -169,7 +169,7 @@ var p = new SyncPromise(function(resolve, reject) {
 
 ### SyncPromise#then(function)
 
-The passed function will be called if the promise fulfills. A new promise
+The passed function will be called if the promise is fulfilled. A new promise
 chained from the original promise is returned. The new promise is resolved with
 the value that the function return. The new promise is rejected if the function
 throws an error.
@@ -187,7 +187,7 @@ getSomething.then(function(v) {
 
 ### SyncPromise#catch(function)
 
-The passed function will be called if the promise rejects. A new promise
+The passed function will be called if the promise is rejected. A new promise
 chained from the original promise is returned. The new promise is resolved with
 the value that the function return. The new promise is rejected if the function
 throws an error.
