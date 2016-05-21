@@ -1,55 +1,52 @@
 # SyncPromise
 
-A fast, small, _safe_ promise implementation with synchronous promise resolution
-and an API which resembles ECMAScript promises.
+A fast, small, _safe_ promise implementation with synchronous promise
+resolution and an API which resembles ECMAScript promises.
 
-SyncPromise is incompliant with the Promises/A+ spec. Specifically part
+SyncPromise is incompliant with the Promises/A+ spec, specifically part
 [2.2.4](https://promisesaplus.com/#point-34).
 
-Why
-===
+## Why
 
-Promises make handling asynchronous operations easier. IndexedDB exposes a lot of
-asynchronous operations. That sounds like a great match? Well, [unfortunately things
+Promises make handling asynchronous operations easier. IndexedDB exposes a
+lot of asynchronous operations. That sounds like a great match? Well, [unfortunately things
 are not so simple](http://stackoverflow.com/questions/28388129/inconsistent-interplay-between-indexeddb-transactions-and-promises/)
-It is not possible to use Promises/A+ promises inside IndexedDB transactions in
-a cross browser way.
+It is not possible to use Promises/A+ promises inside IndexedDB transactions
+in a cross browser way.
 
 SyncPromise was created because it's author wanted to use promises in
 IndexedDB transaction for the library [SyncedDB](https://github.com/paldepind/synceddb)
 – both internally and in the user facing API. It was released in the hope that
 it would be of use to others who work directly with IndexedDB.
 
-Features
-========
+## Features
 
 * Weighs less than 1KB when minified (not gzipped).
 * Familiar API that is very similar to the native ECMAScript promises API.
 * Provides a safety mechanism to prevent [releasing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony)
-* Distributed both as a CommonJS pacakge, AMD module, global export and as a
+* Distributed both as a CommonJS package, AMD module, global export and as a
   version suitable for including directly in other source code.
 
-Safety
-======
+## Safety
 
-It is for good reason that the Promises/A+ specification requires asynchronous
-resolution! Without care taken one can end up creating promises that are
-sometimes synchronous and sometimes asynchronous. That is a _very_ bad idea
-that leads to unpredictable non-deterministic behaviour ([see this post for a
+It is for good reason that the Promises/A+ specification requires
+asynchronous resolution! Without care taken one can end up creating promises
+that are sometimes synchronous and sometimes asynchronous. That is a _very_
+bad idea that leads to unpredictable non-deterministic behaviour ([see this post for a
 detailed explanation](http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/)).
 
 ### Restrictions
 
-Fortunately SyncPromise imposes a two restrictions on usage. The first prevents
-ensures that promises are never resolved immediately. And the second makes sure
-that no errors gets swallowed. Together these restrictions ensure that a
+Fortunately SyncPromise imposes two restrictions on usage. The first ensures
+that promises are never resolved immediately. The second makes sure
+that no errors get swallowed. Together these restrictions ensure that a
 promise chain will _always_ be run asynchronously or an explicit error will be
 thrown.
 
 ### Promises that are synchronously resolved can't be chained
 
-Throwing an exception in the promise body counts as a synchronous resolution.
-The error will not be caught.
+Throwing an exception directly in the promise body counts as a synchronous
+resolution, and the error will therefore not be caught.
 
 ```javascript
 new SyncPromise(function(resolve, reject) {
@@ -67,41 +64,54 @@ new SyncPromise(function(resolve, reject) {
 });
 ```
 
-### If a promise rejects at least one `onRejected` callback must have been attached
+Uncaught errors will be thrown if the rejection occurs within the `SyncPromise`
+function body and there is no `catch`, however:
 
-This ensures that all rejected promises are handled. Other promise libraries (Bluebird
-for instance) uses async mechanisms to ensure this.
+```javascript
+new SyncPromise(function(res, rej) {
+  setTimeout(function () {
+    throw new Error('err');
+  });
+});
+```
+
+### If a promise rejects, at least one `onRejected` callback must have been attached
+
+This ensures that all rejected promises are handled. Other promise libraries
+(Bluebird for instance) use async mechanisms to ensure this.
 
 ```javascript
 var p = new SyncPromise(function(resolve, reject) {
   setTimeout(reject, 10); // Error is thrown – no rejection handlers attached yet
-})
+});
 setTimeout(function() {
   p.catch(function() { });
 }), 20;
 ```
 
-Installation
-============
+## Installation
 
 ### Node.js/Browserify
-```
+
+```shell
 npm install sync-promise
 ```
+
 Then:
+
 ```javascript
 var SyncPromise = require('sync-promise');
 ```
 
 ### Browser
-```
+
+```shell
 bower install sync-promise
 ```
+
 Then include the global export or the AMD module.
 
-
-Example
-=======
+## Example
 
 ```javascript
 // This is a wrapper around IDBStore#get.
@@ -132,24 +142,22 @@ getRecord(bookStore, 'Bedrock Nights').then(function(book) {
 });
 ```
 
-Differences from ECMAScript promises
-====================================
+## Differences from ECMAScript promises
 
 * Synchronized resolution and rejection, of course.
-* No `race` function. How that function ended up in the specification is beyond
-  me. Especially considering the amount of way more useful promise utility function.
-* `.then` does not take a rejection handler. Only a fulfilled handler. Use `.catch`
-  instead. This is a departure from Promises/A+. But we're not compatible anyway
-  so we get away with not supporting [this anti-pattern](https://github.com/petkaantonov/bluebird/wiki/Promise-anti-patterns#the-thensuccess-fail-anti-pattern).
-* `Promise.resolve` and `Promise.reject` are not implemented – they don't make sense
-  given the above restrictions
+* `SyncPromise.race` only allows promises in its array argument and
+  `SyncPromise.all` must have at least one promise in its array argument.
+  These requirements are to avoid synchronous resolution of the promise
+  these methods are to return.
+* `Promise.resolve` and `Promise.reject` are not implemented – they don't
+  make sense given the above restrictions
 
-API
-===
+## API
 
 ### new SyncPromise(function)
 
-Creates a new promise. The passed function is passed callbacks to both resolve and reject the promise.
+Creates a new promise. The passed function is passed callbacks to both
+resolve and reject the promise.
 
 __Example:__
 
@@ -182,7 +190,6 @@ getSomething.then(function(v) {
 }).then(function(v) {
   doSomethingElse(v);
 });
-
 ```
 
 ### SyncPromise#catch(function)
@@ -205,14 +212,18 @@ getSomething.then(function(v) {
 ### SyncPromise.all(array)
 
 Return a promise that is resolved when all promises in the array has fulfilled.
-If one rejects the promise is rejected for the same reason.
+If one rejects, the promise is rejected for the same reason.
+Note that, unlike for ES6 promises, at least one of the supplied values in the
+array must be a promise.
 
 __Example:__
 
 ```javascript
 var ps = [
   new SyncPromise(function(resolve) {
-    resolve(1);
+    setTimeout(function() {
+      resolve(1);
+    }, 100);
   }),
   2,
   new SyncPromise(function(resolve) {
@@ -223,5 +234,30 @@ var ps = [
 ];
 SyncPromise.all(ps).then(function(ns) {
   assert.deepEqual(ns, [1, 2, 3]);
+});
+```
+
+### SyncPromise.race(array)
+
+Return a promise that is resolved when one of the promises in the array has
+fulfilled. If one rejects, the promise is rejected for the same reason.
+
+__Example:__
+
+```javascript
+var ps = [
+  new SyncPromise(function(resolve) {
+    setTimeout(function() {
+      resolve(1);
+    }, 100);
+  }),
+  new SyncPromise(function(resolve) {
+    setTimeout(function() {
+      resolve(2);
+    }, 9);
+  }),
+];
+SyncPromise.race(ps).then(function(ns) {
+  assert.deepEqual(ns, 2);
 });
 ```
