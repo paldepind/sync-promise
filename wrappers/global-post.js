@@ -1,2 +1,2 @@
-export.SyncPromise = SyncPromise;
-}(this));
+exprt.SyncPromise = SyncPromise;
+}(this || self));

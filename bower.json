@@ -1,7 +1,6 @@
 {
   "name": "sync-promise",
   "main": "index.js",
-  "version": "1.0.0",
   "homepage": "https://github.com/paldepind/sync-promise",
   "authors": [
     "Simon Friis Vindum"
