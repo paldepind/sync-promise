@@ -104,15 +104,17 @@ SyncPromise.all = function(promises) {
   return new SyncPromise(function(resolve, reject, l) {
     l = promises.length;
     var hasPromises = false;
+    var newPromises = [];
     promises.forEach(function(p, i) {
       if (isPromise(p)) {
         hasPromises = true;
         addReject(p.then(function(res) {
-          promises[i] = res;
-          --l || resolve(promises);
+          newPromises[i] = res;
+          --l || resolve(newPromises);
         }), reject);
       } else {
-        --l || (hasPromises ? resolve(promises) : (function () {
+        newPromises[i] = p;
+        --l || (hasPromises ? resolve(newPromises) : (function () {
           throw new Error('Must use at least one promise within `SyncPromise.all`');
         }()));
       }
