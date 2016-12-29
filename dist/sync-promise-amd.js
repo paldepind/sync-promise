@@ -102,8 +102,15 @@ prot.catch = function(cb) {
 };
 
 SyncPromise.all = function(promises) {
+  function fireError () {
+    throw new Error('Must use at least one promise within `SyncPromise.all`');
+  }
   return new SyncPromise(function(resolve, reject, l) {
     l = promises.length;
+    if (!l) {
+      fireError();
+      return;
+    }
     var hasPromises = false;
     promises.forEach(function(p, i) {
       if (isPromise(p)) {
@@ -113,9 +120,7 @@ SyncPromise.all = function(promises) {
           --l || resolve(promises);
         }), reject);
       } else {
-        --l || (hasPromises ? resolve(promises) : (function () {
-          throw new Error('Must use at least one promise within `SyncPromise.all`');
-        }()));
+        --l || (hasPromises ? resolve(promises) : fireError());
       }
     });
   });
